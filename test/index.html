@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QB Interact Test</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+            user-select: none;
+        }
+
+        body {
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            background-image: url('https://prod.assets.earlygamecdn.com/images/GTA-5-FiveM-Servers.jpg?transform=article_webp&x=0.5&y=0.5&w=1920');
+            background-size: cover;
+            background-position: center;
+        }
+
+        #interact-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .interact-element {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.1s ease-out;
+            opacity: 0;
+            transform-origin: center;
+            border-radius: 6px;
+            overflow: visible;
+        }
+
+        .interact-element.visible {
+            opacity: 1;
+        }
+
+        /* Icon mode styling - no background */
+        .interact-element.icon-mode {
+            width: 40px;
+            height: 40px;
+            background-color: transparent;
+        }
+
+        .interact-element.icon-mode .interact-key {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: white;
+            padding: 5px;
+            background-color: rgba(17, 207, 232, 0.9);
+            box-shadow: 0 0 10px rgba(17, 207, 232, 0.7);
+        }
+
+        /* Full mode styling - matching icon style for ALL elements */
+        .interact-element.full-mode {
+            padding: 0;
+            background-color: transparent;
+            min-width: 40px;
+            max-width: 350px;
+        }
+
+        .interact-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+            gap: 5px;
+        }
+
+        /* Apply same styling to ALL elements in full mode */
+        .interact-content > span {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(17, 207, 232, 0.9);
+            border-radius: 4px;
+            padding: 5px 8px;
+            color: white;
+            font-weight: 700;
+            font-size: 1rem;
+            letter-spacing: 0.5px;
+            box-shadow: 0 0 10px rgba(17, 207, 232, 0.7);
+            animation: pulse 2s infinite;
+        }
+
+        /* Key styling - special case for keys */
+        .interact-key {
+            min-width: 25px;
+        }
+
+        /* Animation for appearing */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        .interact-element.fade-in {
+            animation: fadeIn 0.1s ease-out forwards;
+        }
+
+        /* Pulse effect for all borders */
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 5px rgba(17, 207, 232, 0.7);
+            }
+            50% {
+                box-shadow: 0 0 15px rgba(17, 207, 232, 0.9);
+            }
+            100% {
+                box-shadow: 0 0 5px rgba(17, 207, 232, 0.7);
+            }
+        }
+
+        /* Controls Panel */
+        .controls-panel {
+            position: fixed;
+            right: 20px;
+            top: 20px;
+            background-color: rgba(0, 73, 136, 0.8);
+            border-radius: 10px;
+            padding: 20px;
+            color: white;
+            z-index: 1000;
+            width: 300px;
+        }
+
+        .controls-panel h2 {
+            margin-bottom: 15px;
+            color: rgb(255, 255, 255);
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .control-group input,
+        .control-group select,
+        .control-group button {
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 5px;
+            border: 1px solid #444;
+            background-color: rgba(30, 30, 30, 0.8);
+            color: white;
+            margin-top: 5px;
+        }
+
+        .control-group button {
+            background-color: rgb(0, 191, 255);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .color-preview {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+    <div id="interact-container">
+        <!-- Interaction elements will be added here by JS -->
+    </div>
+
+    <div class="controls-panel">
+        <h2>Interaction Controls</h2>
+        
+        <div class="control-group">
+            <label>Interaction Text:</label>
+            <input type="text" id="interaction-text" value="~key~E~key~ to interact">
+        </div>
+        
+        <div class="control-group">
+            <label>Mode:</label>
+            <select id="interaction-mode">
+                <option value="icon">Icon Only</option>
+                <option value="full">Full Text</option>
+            </select>
+        </div>
+        
+        <div class="control-group">
+            <label>Position X (%):</label>
+            <input type="range" id="position-x" min="10" max="90" value="50">
+        </div>
+        
+        <div class="control-group">
+            <label>Position Y (%):</label>
+            <input type="range" id="position-y" min="10" max="90" value="50">
+        </div>
+        
+        <div class="control-group">
+            <label>Text Color: 
+                <span class="color-preview" id="primary-color-preview" style="background-color: rgb(255, 255, 255);"></span>
+            </label>
+            <input type="color" id="primary-color" value="#FFFFFF">
+        </div>
+        
+        <div class="control-group">
+            <label>Background Color: 
+                <span class="color-preview" id="bg-color-preview" style="background-color: rgba(17, 207, 232, 0.9);"></span>
+            </label>
+            <input type="color" id="bg-color" value="#11CFE8">
+            <input type="range" id="bg-opacity" min="0" max="100" value="90">
+        </div>
+        
+        <div class="control-group">
+            <button id="update-btn">Update Interaction</button>
+        </div>
+        
+        <div class="control-group">
+            <button id="toggle-btn">Toggle Mode</button>
+        </div>
+    </div>
+
+    <script>
+        // Parse a color string to extract RGB values
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+
+        // Convert RGB values to a CSS color string
+        function rgbToStyle(r, g, b, a) {
+            return `rgba(${r}, ${g}, ${b}, ${a})`;
+        }
+
+        // Process text to extract keys (similar to the actual implementation)
+        function processText(text) {
+            const parts = [];
+            const keyPattern = /~key~(.+?)~key~/g;
+            let match;
+            let lastIndex = 0;
+            
+            while ((match = keyPattern.exec(text)) !== null) {
+                // Add text before the key if exists
+                if (match.index > lastIndex) {
+                    parts.push({
+                        type: 'text',
+                        content: text.substring(lastIndex, match.index)
+                    });
+                }
+                
+                // Add the key
+                parts.push({
+                    type: 'key',
+                    content: match[1]
+                });
+                
+                lastIndex = match.index + match[0].length;
+            }
+            
+            // Add remaining text if any
+            if (lastIndex < text.length) {
+                parts.push({
+                    type: 'text',
+                    content: text.substring(lastIndex)
+                });
+            }
+            
+            return parts;
+        }
+
+        // Create the interaction element
+        function createInteraction() {
+            // Get values from controls
+            const text = document.getElementById('interaction-text').value;
+            const mode = document.getElementById('interaction-mode').value;
+            const posX = document.getElementById('position-x').value;
+            const posY = document.getElementById('position-y').value;
+            const primaryColor = document.getElementById('primary-color').value;
+            const bgColor = document.getElementById('bg-color').value;
+            const bgOpacity = document.getElementById('bg-opacity').value / 100;
+            
+            // Process text into parts
+            const parts = processText(text);
+            
+            // Clear previous interactions
+            document.getElementById('interact-container').innerHTML = '';
+            
+            // Create element
+            const element = document.createElement('div');
+            element.id = 'interaction-test';
+            element.className = 'interact-element visible';
+            
+            // Set positioning
+            element.style.left = `${posX}%`;
+            element.style.top = `${posY}%`;
+            
+            // Add mode specific class
+            element.classList.add(`${mode}-mode`);
+            
+            // Create content container
+            const content = document.createElement('div');
+            content.className = 'interact-content';
+            
+            const rgbKey = hexToRgb(primaryColor);
+            const rgbBg = hexToRgb(bgColor);
+            
+            // Set content based on mode
+            if (mode === 'icon') {
+                // In icon mode, only show the first key
+                let keyAdded = false;
+                for (const part of parts) {
+                    if (part.type === 'key' && !keyAdded) {
+                        const keySpan = document.createElement('span');
+                        keySpan.className = 'interact-key';
+                        keySpan.textContent = part.content;
+                        
+                        // Apply colors
+                        keySpan.style.color = rgbToStyle(rgbKey.r, rgbKey.g, rgbKey.b, 1);
+                        keySpan.style.backgroundColor = rgbToStyle(rgbBg.r, rgbBg.g, rgbBg.b, bgOpacity);
+                        
+                        content.appendChild(keySpan);
+                        keyAdded = true;
+                        break;
+                    }
+                }
+            } else {
+                // In full mode, group text parts together
+                let currentTextParts = [];
+                
+                // Process and render each part with appropriate styling
+                for (const part of parts) {
+                    if (part.type === 'key') {
+                        // If we have accumulated text before this key, add it
+                        if (currentTextParts.length > 0) {
+                            const textSpan = document.createElement('span');
+                            textSpan.textContent = currentTextParts.join('');
+                            // Apply same styling as key
+                            textSpan.style.color = rgbToStyle(rgbKey.r, rgbKey.g, rgbKey.b, 1);
+                            textSpan.style.backgroundColor = rgbToStyle(rgbBg.r, rgbBg.g, rgbBg.b, bgOpacity);
+                            content.appendChild(textSpan);
+                            currentTextParts = [];
+                        }
+                        
+                        // Add the key with distinct styling
+                        const keySpan = document.createElement('span');
+                        keySpan.className = 'interact-key';
+                        keySpan.textContent = part.content;
+                        keySpan.style.color = rgbToStyle(rgbKey.r, rgbKey.g, rgbKey.b, 1);
+                        keySpan.style.backgroundColor = rgbToStyle(rgbBg.r, rgbBg.g, rgbBg.b, bgOpacity);
+                        content.appendChild(keySpan);
+                    } else {
+                        // Collect text parts to group them
+                        currentTextParts.push(part.content);
+                    }
+                }
+                
+                // Add any remaining text
+                if (currentTextParts.length > 0) {
+                    const textSpan = document.createElement('span');
+                    textSpan.textContent = currentTextParts.join('');
+                    // Apply same styling as key
+                    textSpan.style.color = rgbToStyle(rgbKey.r, rgbKey.g, rgbKey.b, 1);
+                    textSpan.style.backgroundColor = rgbToStyle(rgbBg.r, rgbBg.g, rgbBg.b, bgOpacity);
+                    content.appendChild(textSpan);
+                }
+            }
+            
+            element.appendChild(content);
+            
+            // Add to container
+            document.getElementById('interact-container').appendChild(element);
+            
+            // Add animation class
+            element.classList.add('fade-in');
+        }
+
+        // Update color previews
+        function updateColorPreviews() {
+            const primaryColor = document.getElementById('primary-color').value;
+            const bgColor = document.getElementById('bg-color').value;
+            const bgOpacity = document.getElementById('bg-opacity').value / 100;
+            
+            const rgbPrimary = hexToRgb(primaryColor);
+            const rgbBg = hexToRgb(bgColor);
+            
+            document.getElementById('primary-color-preview').style.backgroundColor = rgbToStyle(rgbPrimary.r, rgbPrimary.g, rgbPrimary.b, 1);
+            document.getElementById('bg-color-preview').style.backgroundColor = rgbToStyle(rgbBg.r, rgbBg.g, rgbBg.b, bgOpacity);
+        }
+
+        // Initialize controls
+        document.addEventListener('DOMContentLoaded', function() {
+            // Create initial interaction
+            createInteraction();
+            
+            // Update button event listener
+            document.getElementById('update-btn').addEventListener('click', createInteraction);
+            
+            // Toggle mode button
+            document.getElementById('toggle-btn').addEventListener('click', function() {
+                const modeSelect = document.getElementById('interaction-mode');
+                modeSelect.value = modeSelect.value === 'icon' ? 'full' : 'icon';
+                createInteraction();
+            });
+            
+            // Color preview updates
+            document.getElementById('primary-color').addEventListener('input', updateColorPreviews);
+            document.getElementById('bg-color').addEventListener('input', updateColorPreviews);
+            document.getElementById('bg-opacity').addEventListener('input', updateColorPreviews);
+            
+            // Initialize to full mode for testing
+            document.getElementById('interaction-mode').value = 'full';
+            createInteraction();
+            
+            updateColorPreviews();
+        });
+    </script>
+</body>
+</html> 
