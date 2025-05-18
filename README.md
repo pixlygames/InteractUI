@@ -66,17 +66,6 @@ exports['interactUI']:AddInteraction(coords, "~key~E~key~ to open store", {
 })
 ```
 
-### Removing Interactions
-
-All interactions return an ID that you can use to remove them later:
-
-```lua
-local id = exports['interactUI']:AddInteraction(coords, "~key~E~key~ to open store")
-
--- Later, when you want to remove it:
-exports['interactUI']:RemoveInteraction(id)
-```
-
 ## Configuration
 
 You can customize the behavior in `client/config.lua`:
