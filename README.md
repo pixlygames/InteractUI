@@ -77,41 +77,6 @@ local id = exports['interactUI']:AddInteraction(coords, "~key~E~key~ to open sto
 exports['interactUI']:RemoveInteraction(id)
 ```
 
-### Complete Script Example
-
-```lua
--- Add interaction when player approaches the location
-CreateThread(function()
-    local interactionId = nil
-    
-    while true do
-        local sleep = 1000
-        local playerCoords = GetEntityCoords(PlayerPedId())
-        local distance = #(playerCoords - Config.StoreLocation)
-        
-        if distance < 5 and not interactionId then
-            -- Add interaction when getting close
-            interactionId = exports['interactUI']:DrawText3D(
-                Config.StoreLocation, 
-                "~key~E~key~ to open store"
-            )
-            sleep = 0
-        elseif distance >= 5 and interactionId then
-            -- Remove interaction when moving away
-            exports['interactUI']:RemoveInteraction(interactionId)
-            interactionId = nil
-        end
-        
-        -- Handle interaction when very close and pressing E
-        if distance < 1.5 and IsControlJustReleased(0, 38) then -- E key
-            OpenStoreMenu()
-        end
-        
-        Wait(sleep)
-    end
-end)
-```
-
 ## Configuration
 
 You can customize the behavior in `client/config.lua`:
@@ -130,27 +95,6 @@ Config = {
 }
 ```
 
-## Using the Test Environment
-
-The resource includes a test environment at `test/index.html` that you can open in a browser to preview the UI design without starting a FiveM server:
-
-1. Open `interactUI/test/index.html` in any web browser
-2. Use the control panel to adjust:
-   - Interaction text
-   - Display mode (icon or full text)
-   - Position
-   - Colors
-3. See changes in real-time
-
-## Events
-
-The resource provides several events for controlling interactions:
-
-- `interactUI:client:hideAllInteractions`: Hide all active interactions
-- `interactUI:client:showAllInteractions`: Show all active interactions
-- `interactUI:client:hideInteraction`: Hide a specific interaction
-- `interactUI:client:showInteraction`: Show a specific interaction
-
 ## Performance Considerations
 
 This resource is designed to be highly performant:
@@ -158,8 +102,6 @@ This resource is designed to be highly performant:
 - Only renders interactions within a reasonable distance
 - Automatically cleans up interactions when players die
 - Periodic cleanup of stale UI elements
-
-The UI is approximately 10x more performant than the native DrawText3D implementation.
 
 ## License
 
